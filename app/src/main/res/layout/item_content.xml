@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.AppCompat"
+    android:layout_margin="4dp"
+    card_view:cardElevation="2dp"
+    card_view:cardCornerRadius="2dp"
+    android:background="@null"
+    android:foreground="?android:attr/selectableItemBackground"
+    card_view:cardBackgroundColor="@null"
+    android:layout_width="match_parent"
+    android:layout_height="150dp">
+    <ImageView
+        android:id="@+id/thumbnail"
+        android:src="@drawable/example_type_bg"
+        android:scaleType="centerCrop"
+        android:tint="#96000000"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <TextView
+        android:id="@+id/fileName"
+        android:text="Videos"
+        android:layout_gravity="bottom"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:lines="1"
+        android:ellipsize="marquee"
+        android:layout_margin="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</android.support.v7.widget.CardView>
