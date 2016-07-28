@@ -14,12 +14,26 @@
 
         <include layout="@layout/app_bar_main" />
 
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/container"
             android:background="@null"
+            android:orientation="vertical"
+            android:gravity="center"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent" >
+            <TextView
+                android:id="@+id/searchText"
+                android:textSize="20sp"
+                android:layout_marginBottom="10dp"
+                android:text="Looking for Seeders..."
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <ProgressBar
+                android:id="@+id/searchBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
 
     </android.support.design.widget.CoordinatorLayout>
 

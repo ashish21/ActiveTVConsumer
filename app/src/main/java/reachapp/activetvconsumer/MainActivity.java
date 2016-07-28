@@ -9,18 +9,20 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.crittercism.app.Crittercism;
@@ -53,9 +55,13 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
 
         if (!wifiManager.isWifiEnabled())
             wifiManager.setWifiEnabled(true);
-        if (wifiManager.getConnectionInfo().getSSID().contains("reach-")) {
-            showTypes(this);
-            return;
+        final WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        if (wifiInfo != null) {
+            final String ssid = wifiInfo.getSSID();
+            if (!TextUtils.isEmpty(ssid) && ssid.contains("reach-")) {
+                showTypes(this);
+                return;
+            }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -85,13 +91,22 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
     private static final class WifiScanReceiver extends BroadcastReceiver {
 
         @Override
-        public void onReceive(final Context context, Intent intent) {
+        public void onReceive(Context context, Intent intent) {
+
+            final WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            if (wifiInfo != null) {
+                final String ssid = wifiInfo.getSSID();
+                if (!TextUtils.isEmpty(ssid) && ssid.contains("reach-")) {
+                    context.unregisterReceiver(this);
+                    showTypes((AppCompatActivity) context);
+                    return;
+                }
+            }
 
             final List<ScanResult> wifiScanList = wifiManager.getScanResults();
             for (int i = 0; i < wifiScanList.size(); i++) {
                 final ScanResult scanResult = wifiScanList.get(i);
                 if (scanResult.SSID.contains("reach-")) {
-                    context.unregisterReceiver(this);
 
                     final WifiConfiguration conf = new WifiConfiguration();
                     conf.SSID = "\"" + scanResult.SSID + "\"";
@@ -105,20 +120,12 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
                             wifiManager.disconnect();
                             wifiManager.enableNetwork(j.networkId, true);
                             wifiManager.reconnect();
-
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    showTypes((AppCompatActivity) context);
-                                }
-                            }, 5000L);
                             break;
                         }
                     }
                     return;
                 }
             }
-            Toast.makeText(context, "Trying to find Reach Seeders", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -138,6 +145,8 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
     }
 
     private static void showTypes(AppCompatActivity activity) {
+        activity.findViewById(R.id.searchText).setVisibility(View.GONE);
+        activity.findViewById(R.id.searchBar).setVisibility(View.GONE);
         activity.getSupportFragmentManager().beginTransaction().replace(R.id.container,
                 TypeFragment.newInstance()).commit();
     }
@@ -190,5 +199,11 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        wifiManager.disconnect();
+        super.onDestroy();
     }
 }
