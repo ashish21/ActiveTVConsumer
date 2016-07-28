@@ -53,7 +53,7 @@ public class ContentFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_content, container, false);
         final AppCompatActivity activity = (AppCompatActivity) getActivity();
-        final MixpanelAPI mixpanel = MixpanelAPI.getInstance(activity, "fd461effbd0259aac4dee8a62888f311");
+        final MixpanelAPI mixpanel = MixpanelAPI.getInstance(activity, "944ba55b0438792632412369f541b1b3");
         final RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerView);
         final List<Video> list = new ArrayList<>();
         final ContentAdapter contentAdapter = new ContentAdapter(list, mixpanel);

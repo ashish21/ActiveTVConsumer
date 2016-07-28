@@ -15,3 +15,11 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-dontwarn com.mixpanel.**
+
+-keeppackagenames org.jsoup.nodes
+
+-dontwarn com.crittercism.**
+-keep public class com.crittercism.**
+-keepclassmembers public class com.crittercism.* { *; }

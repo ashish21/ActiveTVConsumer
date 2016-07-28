@@ -23,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.crittercism.app.Crittercism;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 
 import org.jsoup.Jsoup;
@@ -42,7 +43,8 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mixpanelAPI = MixpanelAPI.getInstance(this, "fd461effbd0259aac4dee8a62888f311");
+        Crittercism.initialize(this, "b85902493eb74754bec34163e6bf7c6800555300");
+        mixpanelAPI = MixpanelAPI.getInstance(this, "944ba55b0438792632412369f541b1b3");
         final MixpanelAPI.People people = mixpanelAPI.getPeople();
         people.identify(mixpanelAPI.getDistinctId());
 
