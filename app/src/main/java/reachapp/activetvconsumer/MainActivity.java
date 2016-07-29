@@ -37,62 +37,12 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements ContentFragment.OnContentFragmentInteractionListener, TypeFragment.OnTypeFragmentInteractionListener{
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 11;
-    private static WifiManager wifiManager;
+    private WifiManager wifiManager;
     private MixpanelAPI mixpanelAPI;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        Crittercism.initialize(this, "b85902493eb74754bec34163e6bf7c6800555300");
-        mixpanelAPI = MixpanelAPI.getInstance(this, "944ba55b0438792632412369f541b1b3");
-        final MixpanelAPI.People people = mixpanelAPI.getPeople();
-        people.identify(mixpanelAPI.getDistinctId());
-
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-
-        if (!wifiManager.isWifiEnabled())
-            wifiManager.setWifiEnabled(true);
-        final WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        if (wifiInfo != null) {
-            final String ssid = wifiInfo.getSSID();
-            if (!TextUtils.isEmpty(ssid) && ssid.contains("reach-")) {
-                showTypes(this);
-                return;
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-                registerReceiver(new WifiScanReceiver(),
-                        new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-            else {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION))
-                    Toast.makeText(this, "Location permission is needed to scan wifi", Toast.LENGTH_SHORT).show();
-                else
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                            MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
-            }
-        }
-        else
-            registerReceiver(new WifiScanReceiver(),
-                    new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-    }
-
-    @Override
-    public void onOpenContent(String type) {
-        getSupportFragmentManager().beginTransaction().replace(R.id.container,
-                ContentFragment.newInstance(type)).addToBackStack(null).commit();
-    }
-
-    private static final class WifiScanReceiver extends BroadcastReceiver {
-
+    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
             final WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             if (wifiInfo != null) {
                 final String ssid = wifiInfo.getSSID();
@@ -127,6 +77,54 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
                 }
             }
         }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Crittercism.initialize(this, "b85902493eb74754bec34163e6bf7c6800555300");
+        mixpanelAPI = MixpanelAPI.getInstance(this, "944ba55b0438792632412369f541b1b3");
+        final MixpanelAPI.People people = mixpanelAPI.getPeople();
+        people.identify(mixpanelAPI.getDistinctId());
+
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+
+        if (!wifiManager.isWifiEnabled())
+            wifiManager.setWifiEnabled(true);
+        final WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        if (wifiInfo != null) {
+            final String ssid = wifiInfo.getSSID();
+            if (!TextUtils.isEmpty(ssid) && ssid.contains("reach-")) {
+                showTypes(this);
+                return;
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                registerReceiver(wifiScanReceiver,
+                        new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+            else {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION))
+                    Toast.makeText(this, "Location permission is needed to scan wifi", Toast.LENGTH_SHORT).show();
+                else
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                            MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
+            }
+        }
+        else
+            registerReceiver(wifiScanReceiver,
+                    new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+    }
+
+    @Override
+    public void onOpenContent(String type) {
+        getSupportFragmentManager().beginTransaction().replace(R.id.container,
+                ContentFragment.newInstance(type)).addToBackStack(null).commit();
     }
 
     @Override
@@ -135,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
             case MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    registerReceiver(new WifiScanReceiver(),
+                    registerReceiver(wifiScanReceiver,
                             new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
                 else
                     Toast.makeText(this, "Please connect to the wifi network: reach-2016", Toast.LENGTH_SHORT).show();
@@ -203,6 +201,7 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
 
     @Override
     protected void onDestroy() {
+        unregisterReceiver(wifiScanReceiver);
         wifiManager.disconnect();
         super.onDestroy();
     }
