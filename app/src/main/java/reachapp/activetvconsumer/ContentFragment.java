@@ -1,13 +1,12 @@
 package reachapp.activetvconsumer;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -20,6 +19,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -41,8 +41,8 @@ public class ContentFragment extends Fragment {
     public ContentFragment() {}
 
     static ContentFragment newInstance(String type) {
-        ContentFragment fragment = new ContentFragment();
-        Bundle args = new Bundle();
+        final ContentFragment fragment = new ContentFragment();
+        final Bundle args = new Bundle();
         args.putString("type", type);
         fragment.setArguments(args);
         return fragment;
@@ -51,26 +51,30 @@ public class ContentFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        final Bundle args = getArguments();
+        if (args == null)
+            return null;
+        final String type = args.getString("type");
+        mListener.setTitle(type);
+
         final View rootView = inflater.inflate(R.layout.fragment_content, container, false);
-        final AppCompatActivity activity = (AppCompatActivity) getActivity();
+        final Activity activity = getActivity();
         final MixpanelAPI mixpanel = MixpanelAPI.getInstance(activity, "944ba55b0438792632412369f541b1b3");
+
         final RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerView);
         final List<Video> list = new ArrayList<>();
         final ContentAdapter contentAdapter = new ContentAdapter(list, mixpanel);
         recyclerView.setAdapter(contentAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
-        SlideInUpAnimator animator = new SlideInUpAnimator(new DecelerateInterpolator());
-        animator.setAddDuration(150);
-        animator.setRemoveDuration(150);
-        animator.setMoveDuration(150);
-        animator.setChangeDuration(150);
+
+        final SlideInUpAnimator animator = new SlideInUpAnimator(new DecelerateInterpolator());
+        final int dur = 150;
+        animator.setAddDuration(dur);
+        animator.setRemoveDuration(dur);
+        animator.setMoveDuration(dur);
+        animator.setChangeDuration(dur);
         recyclerView.setItemAnimator(animator);
-        if (getArguments() == null)
-            return null;
-        final String type = getArguments().getString("type");
-        final ActionBar actionBar = activity.getSupportActionBar();
-        if (actionBar != null)
-            actionBar.setTitle(type);
+
         new GetList(contentAdapter, list).execute(type);
 
         return rootView;
@@ -96,10 +100,11 @@ public class ContentFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(ContentViewHolder holder, int position) {
-            holder.fileName.setText(list.get(position).getFileName());
+            final Video video = list.get(position);
+            holder.fileName.setText(video.getFileName());
             Glide
-                .with(holder.thumbnail.getContext())
-                .load(list.get(position).getThumbURL())
+                .with(holder.itemView.getContext())
+                .load(video.getThumbURL())
                 .centerCrop()
                 .placeholder(R.drawable.example_type_bg)
                 .crossFade()
@@ -120,13 +125,13 @@ public class ContentFragment extends Fragment {
             final String mime, file = video.getFileURL();
             if (file.contains(".mp3"))
                 mime = "audio/mp3";
-                else if (file.contains(".mp4") || file.contains(".m4v") || file.contains(".mkv") || file.contains(".avi"))
+            else if (file.contains(".mp4") || file.contains(".m4v") || file.contains(".mkv") || file.contains(".avi"))
                 mime = "video/*";
             else
                 mime = "*/*";
 
-            Uri myUri = Uri.parse(file);
-            Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
+            final Uri myUri = Uri.parse(file);
+            final Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
             intent.setDataAndType(myUri, mime);
             context.startActivity(intent);
         }
@@ -175,6 +180,7 @@ public class ContentFragment extends Fragment {
     }
 
     interface OnContentFragmentInteractionListener {
+        void setTitle(String title);
     }
 
     private static class GetList extends AsyncTask<String, Void, List<Video>> {
@@ -191,46 +197,37 @@ public class ContentFragment extends Fragment {
         @Override
         protected List<Video> doInBackground(String... strings) {
             try {
-                final Document doc = Jsoup.connect("http://192.168.43.1:1993/" + strings[0]).get();
+                final String basePath = "http://192.168.43.1:1993";
+                final Document doc = Jsoup.connect(basePath + "/" + strings[0]).get();
                 final Elements filesElements = doc.getElementsByClass("files").select("a");
                 final List<Video> list = new ArrayList<>();
                 Video video;
                 Element fileElement;
 
-                if (strings[0].equals("Movies")) {
-                    final Document thumbDoc = Jsoup.connect("http://192.168.43.1:1993/Movies/.thumbnails").get();
+                final Connection.Response thumbResponse = Jsoup.connect(basePath + "/" + strings[0] + "/.thumbnails")
+                        .ignoreHttpErrors(true).execute();
+                final int thumbStatus = thumbResponse.statusCode();
+                if (thumbStatus == 200) {
+                    final Document thumbDoc = thumbResponse.parse();
                     final Elements thumbFilesElements = thumbDoc.getElementsByClass("files").select("a");
                     Element thumbFileElement;
-
                     for (int i = 0; i<filesElements.size(); i++) {
                         fileElement = filesElements.get(i);
                         thumbFileElement = thumbFilesElements.get(i);
-                        video = new Video(fileElement.select("span").html(), "http://192.168.43.1:1993" +
-                                fileElement.attr("href"), "http://192.168.43.1:1993" + thumbFileElement.attr("href"));
-                        list.add(video);
-                    }
-                }
-                else if (strings[0].equals("Videos")) {
-                    final Document thumbDoc = Jsoup.connect("http://192.168.43.1:1993/Videos/.thumbnails").get();
-                    final Elements thumbFilesElements = thumbDoc.getElementsByClass("files").select("a");
-                    Element thumbFileElement;
-
-                    for (int i = 0; i<filesElements.size(); i++) {
-                        fileElement = filesElements.get(i);
-                        thumbFileElement = thumbFilesElements.get(i);
-                        video = new Video(fileElement.select("span").html(), "http://192.168.43.1:1993" +
-                                fileElement.attr("href"), "http://192.168.43.1:1993" + thumbFileElement.attr("href"));
+                        video = new Video(fileElement.select("span").html(), basePath +
+                                fileElement.attr("href"), basePath + thumbFileElement.attr("href"));
                         list.add(video);
                     }
                 }
                 else {
-                    for (int i = 0; i < filesElements.size(); i++) {
+                    for (int i = 0; i<filesElements.size(); i++) {
                         fileElement = filesElements.get(i);
-                        video = new Video(fileElement.select("span").html(), "http://192.168.43.1:1993" +
+                        video = new Video(fileElement.select("span").html(), basePath +
                                 fileElement.attr("href"), null);
                         list.add(video);
                     }
                 }
+
                 return list;
             } catch (IOException e) {
                 e.printStackTrace();

@@ -13,9 +13,8 @@
     android:layout_height="150dp">
     <ImageView
         android:id="@+id/thumbnail"
-        android:src="@drawable/example_type_bg"
         android:scaleType="centerCrop"
-        android:tint="#96000000"
+        android:foreground="#96000000"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
     <TextView

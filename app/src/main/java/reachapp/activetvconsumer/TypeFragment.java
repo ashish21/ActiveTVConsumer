@@ -4,8 +4,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -39,27 +37,26 @@ public class TypeFragment extends Fragment {
         return new TypeFragment();
     }
 
-//    private final List<String> list = new ArrayList<>();
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_type, container, false);
-        final AppCompatActivity activity = (AppCompatActivity) getActivity();
-        final ActionBar actionBar = activity.getSupportActionBar();
-        if (actionBar != null)
-            actionBar.setTitle(getResources().getString(R.string.app_name));
+
+        mListener.setTitle(getResources().getString(R.string.app_name));
         final RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerView);
-        final List<String> list = new ArrayList<>();
+        final List<Type> list = new ArrayList<>();
         final ContentAdapter contentAdapter = new ContentAdapter(list, mListener);
         recyclerView.setAdapter(contentAdapter);
-        recyclerView.setLayoutManager(new GridLayoutManager(activity, 2));
-        SlideInUpAnimator animator = new SlideInUpAnimator(new DecelerateInterpolator());
-        animator.setAddDuration(150);
-        animator.setRemoveDuration(150);
-        animator.setMoveDuration(150);
-        animator.setChangeDuration(150);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+
+        final SlideInUpAnimator animator = new SlideInUpAnimator(new DecelerateInterpolator());
+        final int dur = 150;
+        animator.setAddDuration(dur);
+        animator.setRemoveDuration(dur);
+        animator.setMoveDuration(dur);
+        animator.setChangeDuration(dur);
         recyclerView.setItemAnimator(animator);
+
         new GetTypes(contentAdapter, list).execute();
 
         return rootView;
@@ -68,10 +65,10 @@ public class TypeFragment extends Fragment {
     private static class ContentAdapter extends RecyclerView.Adapter<ContentViewHolder>
             implements OnContentClickListener {
 
-        private final List<String> list;
+        private final List<Type> list;
         private final OnTypeFragmentInteractionListener mListener;
 
-        private ContentAdapter(List<String> list, OnTypeFragmentInteractionListener mListener) {
+        private ContentAdapter(List<Type> list, OnTypeFragmentInteractionListener mListener) {
             super();
             this.list = list;
             this.mListener = mListener;
@@ -85,46 +82,15 @@ public class TypeFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(ContentViewHolder holder, int position) {
-            final String type = list.get(position);
-            holder.fileName.setText(type);
-            switch (type) {
-                case "Apps":
-                    Glide
-                        .with(holder.cardBG.getContext())
-                        .load(R.drawable.apps_bg)
-                        .centerCrop()
-                        .placeholder(R.drawable.example_type_bg)
-                        .crossFade()
-                        .into(holder.cardBG);
-                    break;
-                case "Movies":
-                    Glide
-                        .with(holder.cardBG.getContext())
-                        .load(R.drawable.movies_bg)
-                        .centerCrop()
-                        .placeholder(R.drawable.example_type_bg)
-                        .crossFade()
-                        .into(holder.cardBG);
-                    break;
-                case "Videos":
-                    Glide
-                        .with(holder.cardBG.getContext())
-                        .load(R.drawable.videos_bg)
-                        .centerCrop()
-                        .placeholder(R.drawable.example_type_bg)
-                        .crossFade()
-                        .into(holder.cardBG);
-                    break;
-                case "Music":
-                    Glide
-                        .with(holder.cardBG.getContext())
-                        .load(R.drawable.music_bg)
-                        .centerCrop()
-                        .placeholder(R.drawable.example_type_bg)
-                        .crossFade()
-                        .into(holder.cardBG);
-                    break;
-            }
+            final Type type = list.get(position);
+            holder.typeText.setText(type.getTypeName());
+            Glide
+                .with(holder.itemView.getContext())
+                .load(type.getThumbURL())
+                .centerCrop()
+                .placeholder(R.drawable.example_type_bg)
+                .crossFade()
+                .into(holder.cardBG);
         }
 
         @Override
@@ -133,9 +99,8 @@ public class TypeFragment extends Fragment {
         }
 
         @Override
-        public void onContentClick(Context context, int position) {
-            final String type = list.get(position);
-            mListener.onOpenContent(type);
+        public void onContentClick(int position) {
+            mListener.onOpenContent(list.get(position).getTypeName());
         }
     }
 
@@ -143,25 +108,25 @@ public class TypeFragment extends Fragment {
             implements View.OnClickListener{
 
         private final OnContentClickListener onContentClickListener;
-        private final TextView fileName;
+        private final TextView typeText;
         private final ImageView cardBG;
 
         private ContentViewHolder(View itemView, OnContentClickListener onContentClickListener) {
             super(itemView);
             this.itemView.setOnClickListener(this);
             this.onContentClickListener = onContentClickListener;
-            this.fileName = (TextView) this.itemView.findViewById(R.id.fileName);
+            this.typeText = (TextView) this.itemView.findViewById(R.id.typeText);
             this.cardBG = (ImageView) this.itemView.findViewById(R.id.card_bg);
         }
 
         @Override
         public void onClick(View view) {
-            onContentClickListener.onContentClick(view.getContext(), getAdapterPosition());
+            onContentClickListener.onContentClick(getAdapterPosition());
         }
     }
 
     interface OnContentClickListener {
-        void onContentClick(Context context, int position);
+        void onContentClick(int position);
     }
 
     @Override
@@ -183,29 +148,40 @@ public class TypeFragment extends Fragment {
 
     interface OnTypeFragmentInteractionListener {
         void onOpenContent(String type);
+        void setTitle(String title);
     }
 
-    private static class GetTypes extends AsyncTask<Void, Void, List<String>> {
+    private static class GetTypes extends AsyncTask<Void, Void, List<Type>> {
 
         private ContentAdapter contentAdapter;
-        private List<String> list;
+        private List<Type> list;
 
-        private GetTypes(ContentAdapter contentAdapter, List<String> list) {
+        private GetTypes(ContentAdapter contentAdapter, List<Type> list) {
             super();
             this.contentAdapter = contentAdapter;
             this.list = list;
         }
 
         @Override
-        protected List<String> doInBackground(Void... voids) {
+        protected List<Type> doInBackground(Void... voids) {
             try {
-                final Document doc = Jsoup.connect("http://192.168.43.1:1993/").get();
+                final String path = "http://192.168.43.1:1993";
+                final Document doc = Jsoup.connect(path + "/").get();
                 final Elements filesElements = doc.getElementsByClass("directories").select("a");
-                final List<String> list = new ArrayList<>();
+                final List<Type> list = new ArrayList<>();
                 Element fileElement;
-                for (int i = 0; i<filesElements.size(); i++) {
+                Type type;
+                String typeName;
+
+                final Document thumbDoc = Jsoup.connect(path + "/.thumbnails").get();
+                final Elements thumbFilesElements = thumbDoc.getElementsByClass("files").select("a");
+                Element thumbFileElement;
+
+                for (int i = 1; i<filesElements.size(); i++) {
                     fileElement = filesElements.get(i);
-                    list.add(fileElement.select("span").html().replace("/",""));
+                    thumbFileElement = thumbFilesElements.get(i-1);
+                    type = new Type(fileElement.select("span").html().replace("/",""), path + thumbFileElement.attr("href"));
+                    list.add(type);
                 }
                 return list;
             } catch (IOException e) {
@@ -215,7 +191,7 @@ public class TypeFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(List<String> newList) {
+        protected void onPostExecute(List<Type> newList) {
             super.onPostExecute(newList);
             if (list.equals(newList))
                 return;
