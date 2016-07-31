@@ -27,7 +27,7 @@
                 android:textSize="20sp"
                 android:layout_margin="10dp"
                 android:gravity="center"
-                android:text="Looking for Seeders..."
+                android:text="Searching for free videos, movies, music and more..."
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <ProgressBar

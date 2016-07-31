@@ -21,6 +21,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -51,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
             final WifiInfo wifiInfo = activity.wifiManager.getConnectionInfo();
             if (wifiInfo != null) {
                 final String ssid = wifiInfo.getSSID();
-                if (!TextUtils.isEmpty(ssid) && ssid.contains("reach-")) {
+                if (!TextUtils.isEmpty(ssid) && ssid.contains("activeTV-")) {
                     activity.unregisterReceiver(this);
                     showTypes(activity);
                     return;
@@ -59,9 +60,10 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
             }
 
             final List<ScanResult> wifiScanList = activity.wifiManager.getScanResults();
+            Log.d("Ashish", wifiScanList.toString());
             for (int i = 0; i < wifiScanList.size(); i++) {
                 final ScanResult scanResult = wifiScanList.get(i);
-                if (scanResult.SSID.contains("reach-")) {
+                if (scanResult.SSID.contains("activeTV-")) {
 
                     final WifiConfiguration conf = new WifiConfiguration();
                     conf.SSID = "\"" + scanResult.SSID + "\"";
@@ -75,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
                             activity.wifiManager.disconnect();
                             activity.wifiManager.enableNetwork(j.networkId, true);
                             activity.wifiManager.reconnect();
+                            activity.wifiManager.startScan();
                             break;
                         }
                     }
@@ -105,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
         final WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         if (wifiInfo != null) {
             final String ssid = wifiInfo.getSSID();
-            if (!TextUtils.isEmpty(ssid) && ssid.contains("reach-")) {
+            if (!TextUtils.isEmpty(ssid) && ssid.contains("activeTV-")) {
                 showTypes(this);
                 return;
             }
@@ -113,9 +116,11 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                wifiManager.startScan();
                 registerReceiver(wifiScanReceiver,
                         new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+            }
             else {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION))
                     Toast.makeText(this, "Location permission is needed to scan wifi", Toast.LENGTH_SHORT).show();
@@ -123,9 +128,11 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
                         MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
             }
         }
-        else
+        else {
+            wifiManager.startScan();
             registerReceiver(wifiScanReceiver,
                     new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        }
     }
 
     @Override
@@ -139,15 +146,17 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION: {
                 if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    wifiManager.startScan();
                     registerReceiver(wifiScanReceiver,
                             new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+                }
                 else {
                     try {
                         unregisterReceiver(wifiScanReceiver);
                     } catch (IllegalArgumentException ignored) {}
                     searchBar.setVisibility(View.GONE);
-                    searchText.setText("Please connect to the wifi network named 'reach-'");
+                    searchText.setText("Please connect to the wifi network named 'activeTV-'");
                 }
                 break;
             }
@@ -206,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
         final WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         if (wifiInfo != null) {
             final String ssid = wifiInfo.getSSID();
-            if (!TextUtils.isEmpty(ssid) && ssid.contains("reach-"))
+            if (!TextUtils.isEmpty(ssid) && ssid.contains("activeTV-"))
                 wifiManager.disconnect();
         }
         super.onDestroy();
