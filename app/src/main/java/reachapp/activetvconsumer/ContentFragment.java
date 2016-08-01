@@ -239,7 +239,8 @@ public class ContentFragment extends Fragment {
         protected void onPostExecute(List<Video> pairList) {
             super.onPostExecute(pairList);
             list.clear();
-            list.addAll(pairList);
+            if (pairList != null)
+                list.addAll(pairList);
             contentAdapter.notifyItemRangeChanged(0, list.size());
         }
     }

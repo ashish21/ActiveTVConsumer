@@ -168,6 +168,7 @@ public class TypeFragment extends Fragment {
                 final String path = "http://192.168.43.1:1993";
                 final Document doc = Jsoup.connect(path + "/").get();
                 final Elements filesElements = doc.getElementsByClass("directories").select("a");
+                filesElements.remove(0);
                 final List<Type> list = new ArrayList<>();
                 Element fileElement;
                 Type type;
@@ -177,9 +178,9 @@ public class TypeFragment extends Fragment {
                 final Elements thumbFilesElements = thumbDoc.getElementsByClass("files").select("a");
                 Element thumbFileElement;
 
-                for (int i = 1; i<filesElements.size(); i++) {
+                for (int i = 0; i<filesElements.size(); i++) {
                     fileElement = filesElements.get(i);
-                    thumbFileElement = thumbFilesElements.get(i-1);
+                    thumbFileElement = thumbFilesElements.get(i);
                     type = new Type(fileElement.select("span").html().replace("/",""), path + thumbFileElement.attr("href"));
                     list.add(type);
                 }
@@ -193,10 +194,9 @@ public class TypeFragment extends Fragment {
         @Override
         protected void onPostExecute(List<Type> newList) {
             super.onPostExecute(newList);
-            if (list.equals(newList))
-                return;
             list.clear();
-            list.addAll(newList);
+            if (newList != null)
+                list.addAll(newList);
             contentAdapter.notifyItemRangeChanged(0, list.size());
         }
     }
