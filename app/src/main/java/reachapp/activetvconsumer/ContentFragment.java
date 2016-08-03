@@ -122,7 +122,10 @@ public class ContentFragment extends Fragment {
             final Map<String, Object> map = new HashMap<>();
             map.put("fileName", f.getFileName());
             mixpanelAPI.trackMap("Transaction", map);
-            final String mime, file = f.getFileURL();
+            String mime, file = f.getFileURL();
+            final Uri myUri = Uri.parse(file);
+            final Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
+
             if (file.contains(".mp3"))
                 mime = "audio/mp3";
             else if (file.contains(".mp4") || file.contains(".m4v") || file.contains(".mkv") || file.contains(".avi"))
@@ -131,11 +134,12 @@ public class ContentFragment extends Fragment {
                 mime = "image/*";
             else if (file.contains(".pdf"))
                 mime = "application/pdf";
-            else
-                mime = "*/*";
+            else {
+                intent.setData(myUri);
+                context.startActivity(intent);
+                return;
+            }
 
-            final Uri myUri = Uri.parse(file);
-            final Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
             intent.setDataAndType(myUri, mime);
             context.startActivity(intent);
         }
