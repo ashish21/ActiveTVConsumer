@@ -170,8 +170,12 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
     private static void showTypes(MainActivity activity) {
         activity.searchText.setVisibility(View.GONE);
         activity.searchBar.setVisibility(View.GONE);
-        activity.fragmentManager.beginTransaction().replace(R.id.container,
-                TypeFragment.newInstance()).commit();
+        try {
+            if (!activity.isFinishing())
+                activity.fragmentManager.beginTransaction().replace(R.id.container,
+                        TypeFragment.newInstance()).commit();
+        }
+        catch (IllegalStateException ignored) {}
     }
 
     @Override
