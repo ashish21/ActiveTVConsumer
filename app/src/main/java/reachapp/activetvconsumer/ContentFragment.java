@@ -62,7 +62,7 @@ public class ContentFragment extends Fragment {
         final MixpanelAPI mixpanel = MixpanelAPI.getInstance(activity, "944ba55b0438792632412369f541b1b3");
 
         final RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerView);
-        final List<Video> list = new ArrayList<>();
+        final List<File> list = new ArrayList<>();
         final ContentAdapter contentAdapter = new ContentAdapter(list, mixpanel);
         recyclerView.setAdapter(contentAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
@@ -83,10 +83,10 @@ public class ContentFragment extends Fragment {
     private static class ContentAdapter extends RecyclerView.Adapter<ContentViewHolder>
             implements OnContentClickListener {
 
-        private final List<Video> list;
+        private final List<File> list;
         private final MixpanelAPI mixpanelAPI;
 
-        private ContentAdapter(List<Video> list, MixpanelAPI mixpanelAPI) {
+        private ContentAdapter(List<File> list, MixpanelAPI mixpanelAPI) {
             super();
             this.list = list;
             this.mixpanelAPI = mixpanelAPI;
@@ -100,11 +100,11 @@ public class ContentFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(ContentViewHolder holder, int position) {
-            final Video video = list.get(position);
-            holder.fileName.setText(video.getFileName());
+            final File file = list.get(position);
+            holder.fileName.setText(file.getFileName());
             Glide
                 .with(holder.itemView.getContext())
-                .load(video.getThumbURL())
+                .load(file.getThumbURL())
                 .centerCrop()
                 .placeholder(R.drawable.example_type_bg)
                 .crossFade()
@@ -118,15 +118,19 @@ public class ContentFragment extends Fragment {
 
         @Override
         public void onContentClick(Context context, int position) {
-            final Video video = list.get(position);
+            final File f = list.get(position);
             final Map<String, Object> map = new HashMap<>();
-            map.put("fileName", video.getFileName());
+            map.put("fileName", f.getFileName());
             mixpanelAPI.trackMap("Transaction", map);
-            final String mime, file = video.getFileURL();
+            final String mime, file = f.getFileURL();
             if (file.contains(".mp3"))
                 mime = "audio/mp3";
             else if (file.contains(".mp4") || file.contains(".m4v") || file.contains(".mkv") || file.contains(".avi"))
                 mime = "video/*";
+            else if (file.contains(".jpg") || file.contains(".jpeg") || file.contains(".png") || file.contains(".bmp"))
+                mime = "image/*";
+            else if (file.contains(".pdf"))
+                mime = "application/pdf";
             else
                 mime = "*/*";
 
@@ -183,25 +187,25 @@ public class ContentFragment extends Fragment {
         void setTitle(String title);
     }
 
-    private static class GetList extends AsyncTask<String, Void, List<Video>> {
+    private static class GetList extends AsyncTask<String, Void, List<File>> {
 
         private ContentAdapter contentAdapter;
-        private List<Video> list;
+        private List<File> list;
 
-        private GetList(ContentAdapter contentAdapter, List<Video> list) {
+        private GetList(ContentAdapter contentAdapter, List<File> list) {
             super();
             this.contentAdapter = contentAdapter;
             this.list = list;
         }
 
         @Override
-        protected List<Video> doInBackground(String... strings) {
+        protected List<File> doInBackground(String... strings) {
             try {
                 final String basePath = "http://192.168.43.1:1993";
                 final Document doc = Jsoup.connect(basePath + "/" + strings[0]).get();
                 final Elements filesElements = doc.getElementsByClass("files").select("a");
-                final List<Video> list = new ArrayList<>();
-                Video video;
+                final List<File> list = new ArrayList<>();
+                File file;
                 Element fileElement;
 
                 final Connection.Response thumbResponse = Jsoup.connect(basePath + "/" + strings[0] + "/.thumbnails")
@@ -214,17 +218,17 @@ public class ContentFragment extends Fragment {
                     for (int i = 0; i<filesElements.size(); i++) {
                         fileElement = filesElements.get(i);
                         thumbFileElement = thumbFilesElements.get(i);
-                        video = new Video(fileElement.select("span").html(), basePath +
+                        file = new File(fileElement.select("span").html(), basePath +
                                 fileElement.attr("href"), basePath + thumbFileElement.attr("href"));
-                        list.add(video);
+                        list.add(file);
                     }
                 }
                 else {
                     for (int i = 0; i<filesElements.size(); i++) {
                         fileElement = filesElements.get(i);
-                        video = new Video(fileElement.select("span").html(), basePath +
+                        file = new File(fileElement.select("span").html(), basePath +
                                 fileElement.attr("href"), null);
-                        list.add(video);
+                        list.add(file);
                     }
                 }
 
@@ -236,7 +240,7 @@ public class ContentFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(List<Video> pairList) {
+        protected void onPostExecute(List<File> pairList) {
             super.onPostExecute(pairList);
             list.clear();
             if (pairList != null)

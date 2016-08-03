@@ -53,7 +53,9 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
             if (wifiInfo != null) {
                 final String ssid = wifiInfo.getSSID();
                 if (!TextUtils.isEmpty(ssid) && ssid.contains("activeTV-")) {
-                    activity.unregisterReceiver(this);
+                    try {
+                        activity.unregisterReceiver(wifiScanReceiver);
+                    } catch (IllegalArgumentException ignored) {}
                     showTypes(activity);
                     return;
                 }
@@ -96,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
         final MixpanelAPI mixpanelAPI = MixpanelAPI.getInstance(this, "944ba55b0438792632412369f541b1b3");
         final MixpanelAPI.People people = mixpanelAPI.getPeople();
         people.identify(mixpanelAPI.getDistinctId());
+
+        mixpanelAPI.track("ActiveUser");
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         fragmentManager = getSupportFragmentManager();

@@ -180,8 +180,12 @@ public class TypeFragment extends Fragment {
 
                 for (int i = 0; i<filesElements.size(); i++) {
                     fileElement = filesElements.get(i);
-                    thumbFileElement = thumbFilesElements.get(i);
-                    type = new Type(fileElement.select("span").html().replace("/",""), path + thumbFileElement.attr("href"));
+                    if (thumbFilesElements.size() > i) {
+                        thumbFileElement = thumbFilesElements.get(i);
+                        type = new Type(fileElement.select("span").html().replace("/",""), path + thumbFileElement.attr("href"));
+                    }
+                    else
+                        type = new Type(fileElement.select("span").html().replace("/",""), null);
                     list.add(type);
                 }
                 return list;

@@ -4,7 +4,7 @@ package reachapp.activetvconsumer;
  * Created by ashish on 23/07/16.
  */
 
-class Video {
+class File {
 
     private String fileName;
     private String fileURL;
@@ -12,7 +12,7 @@ class Video {
 
     @Override
     public String toString() {
-        return "Video{" +
+        return "File{" +
                 "fileName='" + fileName + '\'' +
                 ", fileURL='" + fileURL + '\'' +
                 ", thumbURL='" + thumbURL + '\'' +
@@ -24,12 +24,12 @@ class Video {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Video video = (Video) o;
+        File file = (File) o;
 
-        if (fileName != null ? !fileName.equals(video.fileName) : video.fileName != null)
+        if (fileName != null ? !fileName.equals(file.fileName) : file.fileName != null)
             return false;
-        if (fileURL != null ? !fileURL.equals(video.fileURL) : video.fileURL != null) return false;
-        return thumbURL != null ? thumbURL.equals(video.thumbURL) : video.thumbURL == null;
+        if (fileURL != null ? !fileURL.equals(file.fileURL) : file.fileURL != null) return false;
+        return thumbURL != null ? thumbURL.equals(file.thumbURL) : file.thumbURL == null;
 
     }
 
@@ -66,7 +66,7 @@ class Video {
         return thumbURL;
     }
 
-    Video(String fileName, String fileURL, String thumbURL) {
+    File(String fileName, String fileURL, String thumbURL) {
 
         this.fileName = fileName;
         this.fileURL = fileURL;
