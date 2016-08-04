@@ -56,6 +56,7 @@ public class ContentFragment extends Fragment {
             return null;
         final String type = args.getString("type");
         mListener.setTitle(type);
+        mListener.showBackBtn(true);
 
         final View rootView = inflater.inflate(R.layout.fragment_content, container, false);
         final Activity activity = getActivity();
@@ -189,6 +190,7 @@ public class ContentFragment extends Fragment {
 
     interface OnContentFragmentInteractionListener {
         void setTitle(String title);
+        void showBackBtn(boolean show);
     }
 
     private static class GetList extends AsyncTask<String, Void, List<File>> {

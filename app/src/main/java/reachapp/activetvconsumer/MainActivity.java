@@ -14,6 +14,7 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
@@ -98,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
         final MixpanelAPI mixpanelAPI = MixpanelAPI.getInstance(this, "944ba55b0438792632412369f541b1b3");
         final MixpanelAPI.People people = mixpanelAPI.getPeople();
         people.identify(mixpanelAPI.getDistinctId());
+        people.set("ANDROID_ID", Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID));
 
         mixpanelAPI.track("ActiveUser");
 
@@ -105,6 +107,13 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
         fragmentManager = getSupportFragmentManager();
         searchText = (TextView) findViewById(R.id.searchText);
         searchBar = (ProgressBar) findViewById(R.id.searchBar);
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
 
         wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         if (!wifiManager.isWifiEnabled())
@@ -181,6 +190,18 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
     @Override
     public void setTitle(String title) {
         toolbar.setTitle(title);
+    }
+
+    @Override
+    public void showBackBtn(boolean show) {
+        if (show) {
+            toolbar.setLogo(null);
+            toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
+        }
+        else {
+            toolbar.setLogo(R.drawable.ic_logo_white);
+            toolbar.setNavigationIcon(null);
+        }
     }
 
     private static class GetUpdate extends AsyncTask<Void, Void, Document> {

@@ -43,6 +43,7 @@ public class TypeFragment extends Fragment {
         final View rootView = inflater.inflate(R.layout.fragment_type, container, false);
 
         mListener.setTitle(getResources().getString(R.string.app_name));
+        mListener.showBackBtn(false);
         final RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerView);
         final List<Type> list = new ArrayList<>();
         final ContentAdapter contentAdapter = new ContentAdapter(list, mListener);
@@ -149,6 +150,7 @@ public class TypeFragment extends Fragment {
     interface OnTypeFragmentInteractionListener {
         void onOpenContent(String type);
         void setTitle(String title);
+        void showBackBtn(boolean show);
     }
 
     private static class GetTypes extends AsyncTask<Void, Void, List<Type>> {
