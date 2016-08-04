@@ -213,6 +213,7 @@ public class ContentFragment extends Fragment {
                 final List<File> list = new ArrayList<>();
                 File file;
                 Element fileElement;
+                String fileUrl;
 
                 final Connection.Response thumbResponse = Jsoup.connect(basePath + "/" + strings[0] + "/.thumbnails")
                         .ignoreHttpErrors(true).execute();
@@ -232,8 +233,12 @@ public class ContentFragment extends Fragment {
                 else {
                     for (int i = 0; i<filesElements.size(); i++) {
                         fileElement = filesElements.get(i);
-                        file = new File(fileElement.select("span").html(), basePath +
-                                fileElement.attr("href"), null);
+                        fileUrl = basePath + fileElement.attr("href");
+                        if (fileUrl.contains(".jpg") || fileUrl.contains(".jpeg") ||
+                                fileUrl.contains(".png") || fileUrl.contains(".bmp"))
+                            file = new File(fileElement.select("span").html(), fileUrl, fileUrl);
+                        else
+                            file = new File(fileElement.select("span").html(), fileUrl, null);
                         list.add(file);
                     }
                 }
