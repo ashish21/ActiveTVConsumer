@@ -170,6 +170,8 @@ public class TypeFragment extends Fragment {
                 final String path = "http://192.168.43.1:1993";
                 final Document doc = Jsoup.connect(path + "/").get();
                 final Elements filesElements = doc.getElementsByClass("directories").select("a");
+                if (filesElements.size() == 0)
+                    return null;
                 filesElements.remove(0);
                 final List<Type> list = new ArrayList<>();
                 Element fileElement;
