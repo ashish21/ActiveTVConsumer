@@ -14,27 +14,13 @@
 
         <include layout="@layout/app_bar_main" />
 
-        <LinearLayout
+        <FrameLayout
             android:id="@+id/container"
             android:background="@null"
-            android:orientation="vertical"
-            android:gravity="center"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
-            <TextView
-                android:id="@+id/searchText"
-                android:textSize="20sp"
-                android:layout_margin="10dp"
-                android:gravity="center"
-                android:text="Searching for free videos, movies, music and more..."
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-            <ProgressBar
-                android:id="@+id/searchBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
+        </FrameLayout>
 
     </android.support.design.widget.CoordinatorLayout>
 

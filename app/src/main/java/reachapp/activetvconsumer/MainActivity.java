@@ -24,8 +24,6 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crittercism.app.Crittercism;
@@ -42,8 +40,6 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 11;
     private WifiManager wifiManager;
     private FragmentManager fragmentManager;
-    private TextView searchText;
-    private ProgressBar searchBar;
     private Toolbar toolbar;
 
     private static final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
@@ -57,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
                     try {
                         activity.unregisterReceiver(wifiScanReceiver);
                     } catch (IllegalArgumentException ignored) {}
-                    showTypes(activity);
                     return;
                 }
             }
@@ -105,8 +100,6 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         fragmentManager = getSupportFragmentManager();
-        searchText = (TextView) findViewById(R.id.searchText);
-        searchBar = (ProgressBar) findViewById(R.id.searchBar);
 
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,14 +111,7 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
         wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         if (!wifiManager.isWifiEnabled())
             wifiManager.setWifiEnabled(true);
-        final WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        if (wifiInfo != null) {
-            final String ssid = wifiInfo.getSSID();
-            if (!TextUtils.isEmpty(ssid) && ssid.contains("activeTV-")) {
-                showTypes(this);
-                return;
-            }
-        }
+        showTypes(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
@@ -168,8 +154,6 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
                     try {
                         unregisterReceiver(wifiScanReceiver);
                     } catch (IllegalArgumentException ignored) {}
-                    searchBar.setVisibility(View.GONE);
-                    searchText.setText("Please connect to the wifi network named 'activeTV-'");
                 }
                 break;
             }
@@ -177,8 +161,6 @@ public class MainActivity extends AppCompatActivity implements ContentFragment.O
     }
 
     private static void showTypes(MainActivity activity) {
-        activity.searchText.setVisibility(View.GONE);
-        activity.searchBar.setVisibility(View.GONE);
         try {
             if (!activity.isFinishing())
                 activity.fragmentManager.beginTransaction().replace(R.id.container,
