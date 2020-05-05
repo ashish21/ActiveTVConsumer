@@ -108,7 +108,6 @@ public class ContentFragment extends Fragment {
                 .load(file.getThumbURL())
                 .centerCrop()
                 .placeholder(R.drawable.example_type_bg)
-                .crossFade()
                 .into(holder.thumbnail);
         }
 

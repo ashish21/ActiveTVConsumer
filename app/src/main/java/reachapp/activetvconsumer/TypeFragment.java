@@ -96,7 +96,6 @@ public class TypeFragment extends Fragment {
                 .load(type.getThumbURL())
                 .centerCrop()
                 .placeholder(R.drawable.example_type_bg)
-                .crossFade()
                 .into(holder.cardBG);
         }
 
